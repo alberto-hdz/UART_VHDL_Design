@@ -1,0 +1,76 @@
+# ============================================
+# Vivado / Xilinx project files
+# ============================================
+
+# Vivado project files (recreatable from source)
+*.xpr
+*.runs/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.sim/
+
+# Vivado generated files
+*.jou
+*.log
+*.str
+*.debug
+*.pb
+
+# Synthesis and implementation outputs
+*.bit
+*.ltx
+*.dcp
+*.xdc.bak
+
+# Vivado HLS
+*.aps
+vivado_hls.app
+
+# Vivado IP
+*.xci
+*.xml
+*.mem
+!src/*.mem
+
+# ============================================
+# Simulation files
+# ============================================
+*.wdb
+*.wcfg.bak
+webtalk/
+.Xil/
+
+# ============================================
+# OS files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
+
+# ============================================
+# Editor files
+# ============================================
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ============================================
+# Archives (don't commit large zip files)
+# ============================================
+*.zip
+*.tar.gz
+*.rar
