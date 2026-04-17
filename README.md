@@ -111,7 +111,7 @@ git clone https://github.com/YOUR_USERNAME/UART-VHDL-Design.git
 | Alberto | Integrator | Baud Rate Generator, UART Receiver |
 | Kenneth | — | UART Transmitter, Register Interface |
 | Member C | — | FIFO, RAM, FSM Controller |
-| Member D | — | Classification Engine, Top-Level, Report |
+| Sebastian | — | Classification Engine, Top-Level, Report |
 
 ## Milestones
 
