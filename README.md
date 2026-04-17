@@ -93,7 +93,7 @@ git clone https://github.com/YOUR_USERNAME/UART-VHDL-Design.git
 
 ## Interface Agreement
 
-All agreed-upon port names, signal widths, active levels, and top-level connections are documented in [`docs/INTERFACE_AGREEMENT.md`](docs/INTERFACE_AGREEMENT.md). Every team member must read this before writing any VHDL — it is the source of truth for how modules connect.
+All agreed-upon port names, signal widths, active levels, and top-level connections are documented in [`docs/INTERFACE_AGREEMENT.md`](docs/INTERFACE_AGREEMENT.md). Every team member must read this before writing any VHDL — it is the source for how modules connect.
 
 ---
 
