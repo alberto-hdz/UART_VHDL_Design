@@ -59,7 +59,7 @@ begin
     end process;
 
     -- Next-state logic
-    process(state_reg, s_reg, n_reg, b_reg, tx_start, s_tick, din)
+    process(state_reg, s_reg, n_reg, b_reg, tx_start, s_tick, din, tx_reg)
     begin
         -- Set next state registers to current by default
         state_next <= state_reg;
@@ -81,7 +81,7 @@ begin
             when start =>
                 tx_next <= '0';  -- start bit
                 if s_tick = '1' then
-                    if s_reg = 15 then
+                    if s_reg = to_unsigned(15, s_reg'length) then
                         s_next <= (others => '0'); -- reset counter
                         state_next <= data;
                     else
@@ -91,10 +91,10 @@ begin
             when data =>
                 tx_next <= b_reg(0);  -- LSB first
                 if s_tick = '1' then
-                    if s_reg = 15 then
+                    if s_reg = to_unsigned(15, s_reg'length) then
                         s_next <= (others => '0'); -- reset counter
                         b_next <= '0' & b_reg(7 downto 1);  -- shift right to get next LSB
-                        if n_reg = DBIT - 1 then -- enter stop state when all bits are sent
+                        if n_reg = to_unsigned(DBIT - 1, n_reg'length) then -- enter stop state when all bits are sent
                             state_next <= stop;
                         else
                             n_next <= n_reg + 1; -- +1 counter
@@ -106,7 +106,7 @@ begin
             when stop =>
                 tx_next <= '1';  -- stop bit
                 if s_tick = '1' then
-                    if s_reg = SB_TICK - 1 then
+                    if s_reg = to_unsigned(SB_TICK - 1, s_reg'length) then
                         s_next <= (others => '0'); -- reset
                         tx_done_next <= '1';
                         state_next <= idle; -- go back to idle state
