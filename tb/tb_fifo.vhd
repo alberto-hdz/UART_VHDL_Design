@@ -2,7 +2,7 @@
 -- Testbench: tb_fifo
 -- Description: Verifies FIFO read/write, full,
 -- empty, and simultaneous access behavior.
--- Author: econtre7
+-- Author: Eric Contreras
 -- Date: 2026-04-07
 -- ============================================
 library ieee;
