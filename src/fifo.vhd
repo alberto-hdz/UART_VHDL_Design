@@ -2,7 +2,7 @@
 -- Module: fifo
 -- Description: Circular FIFO buffer for
 -- decoupling RX/TX data flow from processing.
--- Author: econtre7
+-- Author: Eric Contreras
 -- Date: 2026-04-07
 -- ============================================
 library ieee;
