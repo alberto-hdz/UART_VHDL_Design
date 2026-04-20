@@ -130,6 +130,5 @@ See the [Issues](../../issues) tab and [Project Board](../../projects) for curre
 ## Contributing & Community
 
 - **[Contributing Guide](CONTRIBUTING.md)** — Workflow, code standards, and collaboration practices
-- **[Code of Conduct](CODE_OF_CONDUCT.md)** — Community expectations and reporting process
-- **[Security Policy](SECURITY.md)** — How to report security vulnerabilities
+- **[Security Policy](SECURITY.md)**
 - **[License](LICENSE)** — Project licensing information
