@@ -1,3 +1,10 @@
+-- ============================================
+-- Module: ram_module
+-- Description: 32-bit wide synchronous block
+-- RAM with configurable depth for data storage.
+-- Author: econtre7
+-- Date: 2026-04-07
+-- ============================================
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

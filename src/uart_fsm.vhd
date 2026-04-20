@@ -8,7 +8,7 @@
 --   Packing: byte 0 -> bits [7:0],  byte 1 -> bits [15:8],
 --            byte 2 -> bits [23:16], byte 3 -> bits [31:24]
 -- Author: Alberto Hernandez
--- Date: 2026-04-17
+-- Date: 2026-04-14
 -- ============================================
 
 library IEEE;

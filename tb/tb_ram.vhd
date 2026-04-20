@@ -1,3 +1,10 @@
+-- ============================================
+-- Testbench: tb_ram
+-- Description: Verifies synchronous RAM write,
+-- read, and overwrite operations.
+-- Author: econtre7
+-- Date: 2026-04-07
+-- ============================================
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

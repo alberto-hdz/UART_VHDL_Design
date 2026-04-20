@@ -4,7 +4,7 @@
 -- 8-bit parallel data into a serial frame
 -- (start, data, stop) using s_tick timing.
 -- Author: Kenneth Le
--- Date: 2026-04-22
+-- Date: 2026-03-30
 -- ============================================
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;

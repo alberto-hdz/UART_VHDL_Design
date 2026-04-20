@@ -4,7 +4,7 @@
 -- by applying input data and tx_start, and
 -- observing correct serial output and tx_done.
 -- Author: Kenneth Le
--- Date: 2026-04-22
+-- Date: 2026-03-30
 -- ============================================
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
