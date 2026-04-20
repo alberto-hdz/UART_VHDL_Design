@@ -124,3 +124,12 @@ All agreed-upon port names, signal widths, active levels, and top-level connecti
 ## Milestones
 
 See the [Issues](../../issues) tab and [Project Board](../../projects) for current task status.
+
+---
+
+## Contributing & Community
+
+- **[Contributing Guide](CONTRIBUTING.md)** — Workflow, code standards, and collaboration practices
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** — Community expectations and reporting process
+- **[Security Policy](SECURITY.md)** — How to report security vulnerabilities
+- **[License](LICENSE)** — Project licensing information
