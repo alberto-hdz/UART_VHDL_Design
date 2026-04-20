@@ -2,7 +2,7 @@
 -- Module: ram_module
 -- Description: 32-bit wide synchronous block
 -- RAM with configurable depth for data storage.
--- Author: econtre7
+-- Author: Eric Contreras
 -- Date: 2026-04-07
 -- ============================================
 library ieee;
