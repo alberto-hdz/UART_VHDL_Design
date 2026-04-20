@@ -5,7 +5,7 @@
 -- transmitter. Received bytes are stored and then
 -- retransmitted when rx_done is asserted.
 -- Author: Kenneth Le
--- Date: 2026-04-22
+-- Date: 2026-03-30
 -- ============================================
 
 library IEEE;

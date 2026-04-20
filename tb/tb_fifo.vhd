@@ -1,3 +1,10 @@
+-- ============================================
+-- Testbench: tb_fifo
+-- Description: Verifies FIFO read/write, full,
+-- empty, and simultaneous access behavior.
+-- Author: econtre7
+-- Date: 2026-04-07
+-- ============================================
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

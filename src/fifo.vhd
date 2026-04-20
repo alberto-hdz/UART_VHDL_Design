@@ -1,3 +1,10 @@
+-- ============================================
+-- Module: fifo
+-- Description: Circular FIFO buffer for
+-- decoupling RX/TX data flow from processing.
+-- Author: econtre7
+-- Date: 2026-04-07
+-- ============================================
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
