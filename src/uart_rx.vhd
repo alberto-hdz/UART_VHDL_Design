@@ -42,6 +42,9 @@ architecture arch of uart_rx is
     -- shift register: holds incoming bits
     signal shift, shift_next : std_logic_vector(7 downto 0);
 
+    -- rx_done registered through the flip-flop stage
+    signal rx_done_next : std_logic;
+
 begin
 
     -- register update: all state held in flip-flops
@@ -52,11 +55,13 @@ begin
             s_count <= (others => '0');
             n_count <= (others => '0');
             shift   <= (others => '0');
+            rx_done <= '0';
         elsif rising_edge(clk) then
             state   <= state_next;
             s_count <= s_count_next;
             n_count <= n_count_next;
             shift   <= shift_next;
+            rx_done <= rx_done_next;
         end if;
     end process;
 
@@ -67,8 +72,8 @@ begin
         state_next   <= state;
         s_count_next <= s_count;
         n_count_next <= n_count;
-        shift_next   <= shift;
-        rx_done      <= '0';
+        shift_next    <= shift;
+        rx_done_next  <= '0';
 
         case state is
 
@@ -117,8 +122,8 @@ begin
                 if s_tick = '1' then
                     if s_count = SB_TICK - 1 then
                         -- stop bit complete, signal done
-                        state_next <= idle;
-                        rx_done    <= '1';
+                        state_next   <= idle;
+                        rx_done_next <= '1';
                     else
                         s_count_next <= s_count + 1;
                     end if;
