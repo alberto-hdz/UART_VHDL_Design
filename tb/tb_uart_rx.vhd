@@ -86,8 +86,8 @@ begin
 
         -- TEST 1: send 0x41 = 'A' = "01000001"
         send_byte("01000001");
-        -- wait for rx_done, then check output
-        wait until rx_done = '1';
+        -- rx_done fires during the stop bit (before send_byte returns);
+        -- shift register holds the received byte until the next frame
         wait for CLK_PERIOD;
         assert dout = "01000001"
             report "TEST 1 FAILED: expected 0x41, got " & integer'image(to_integer(unsigned(dout)))
@@ -99,7 +99,6 @@ begin
 
         -- TEST 2: send 0x55 = 'U' = "01010101"
         send_byte("01010101");
-        wait until rx_done = '1';
         wait for CLK_PERIOD;
         assert dout = "01010101"
             report "TEST 2 FAILED: expected 0x55, got " & integer'image(to_integer(unsigned(dout)))
@@ -110,7 +109,6 @@ begin
 
         -- TEST 3: send 0xFF = "11111111"
         send_byte("11111111");
-        wait until rx_done = '1';
         wait for CLK_PERIOD;
         assert dout = "11111111"
             report "TEST 3 FAILED: expected 0xFF"
@@ -121,7 +119,6 @@ begin
 
         -- TEST 4: send 0x00 = "00000000"
         send_byte("00000000");
-        wait until rx_done = '1';
         wait for CLK_PERIOD;
         assert dout = "00000000"
             report "TEST 4 FAILED: expected 0x00"
