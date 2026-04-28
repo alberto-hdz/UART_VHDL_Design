@@ -191,6 +191,7 @@ begin
     -- TX FIFO  (classifier writes; TX controller reads)
     -- -------------------------------------------------------
     U_TX_FIFO : entity work.fifo
+        generic map(B => 8, W => 7)   -- 128 entries; holds all classification results without dropping
         port map(
             clk    => clk,
             reset  => reset,
