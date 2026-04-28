@@ -92,7 +92,6 @@ architecture sim of tb_classification_engine is
     -- -------------------------------------------------------------------------
     -- Tracking variables
     -- -------------------------------------------------------------------------
-    signal row_index   : integer := 0;
     signal pass_count  : integer := 0;
     signal fail_count  : integer := 0;
  
@@ -109,7 +108,9 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            ram_dout <= ram_mem(to_integer(unsigned(ram_addr)));
+            if not is_x(ram_addr) then
+                ram_dout <= ram_mem(to_integer(unsigned(ram_addr)));
+            end if;
         end if;
     end process;
  
@@ -179,10 +180,14 @@ begin
         end loop;
  
         -- ---------------------------------------------------------------------
-        -- 4. Wait for done pulse
+        -- 4. Wait for done pulse and verify it is exactly one cycle wide
         -- ---------------------------------------------------------------------
         wait until rising_edge(clk) and done = '1';
         report "done signal asserted -- classification complete.";
+        wait until rising_edge(clk);
+        assert done = '0'
+            report "done pulse FAILED: done did not deassert after one cycle"
+            severity error;
  
         -- ---------------------------------------------------------------------
         -- 5. Final summary
