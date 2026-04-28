@@ -118,7 +118,7 @@ All agreed-upon port names, signal widths, active levels, and top-level connecti
 |--------|------|---------|
 | Alberto | Integrator | Baud Rate Generator, UART Receiver, FSM Controller |
 | Kenneth | — | UART Transmitter, Register Interface |
-| Eric | — | FIFO, RAM |
+| Erik | — | FIFO, RAM |
 | Sebastian | — | Classification Engine, Top-Level, Report |
 
 ## Milestones
