@@ -193,8 +193,15 @@ begin
         variable n_pass : integer := 0;
         variable n_fail : integer := 0;
     begin
-        -- wait for the very first start bit (TX falls from idle HIGH)
-        wait until falling_edge(tx);
+        -- Wait for first start bit. Generous timeout: 128 RX bytes at 9600 baud
+        -- takes ~133 ms before classification and TX begin.
+        wait until falling_edge(tx) for 400 ms;
+        if tx /= '0' then
+            report "TIMEOUT: no TX activity seen within 400 ms"
+                severity error;
+            tx_verify_done <= '1';
+            wait;
+        end if;
 
         for byte_idx in 0 to NUM_TX_BYTES - 1 loop
 
@@ -233,9 +240,19 @@ begin
                 n_fail := n_fail + 1;
             end if;
 
-            -- wait for start bit of next byte (TX controller has a few-cycle gap)
+            -- 2 ms inter-byte timeout: one byte at 9600 baud takes ~1.04 ms,
+            -- so 2 ms is safe. A hang here means bytes were dropped by DUT.
             if byte_idx < NUM_TX_BYTES - 1 then
-                wait until falling_edge(tx);
+                wait until falling_edge(tx) for 2 ms;
+                if tx /= '0' then
+                    report "TIMEOUT: TX stopped after byte " &
+                           integer'image(byte_idx) & "; " &
+                           integer'image(NUM_TX_BYTES - byte_idx - 1) &
+                           " bytes not received (check TX FIFO depth)"
+                        severity error;
+                    n_fail := n_fail + (NUM_TX_BYTES - byte_idx - 1);
+                    exit;
+                end if;
             end if;
 
         end loop;
