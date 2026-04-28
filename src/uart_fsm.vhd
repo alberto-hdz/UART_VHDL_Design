@@ -3,8 +3,8 @@
 -- Description: FSM controller — FIFO to RAM writer
 --   Reads bytes from the RX FIFO one at a time, packs
 --   4 consecutive bytes into a 32-bit word, then writes
---   the word to RAM. Asserts fsm_done when the FIFO is
---   fully drained and the last complete word is written.
+--   the word to RAM. Issues a single-cycle fsm_done pulse
+--   after row 31 (the 32nd word) is written.
 --   Packing: byte 0 -> bits [7:0],  byte 1 -> bits [15:8],
 --            byte 2 -> bits [23:16], byte 3 -> bits [31:24]
 -- Author: Alberto Hernandez
@@ -28,15 +28,18 @@ entity uart_fsm is
         ram_addr   : out std_logic_vector(4 downto 0);     -- row address (0-31)
         ram_din    : out std_logic_vector(31 downto 0);    -- 32-bit packed word to write
         -- status
-        fsm_done   : out std_logic                         -- HIGH when FIFO is fully drained
+        fsm_done   : out std_logic                         -- single-cycle pulse after row 31 written
     );
 end uart_fsm;
 
 architecture arch of uart_fsm is
 
     -- FSM states
-    type state_type is (IDLE, READ_BYTE, PACK, WRITE_RAM, DONE);
+    type state_type is (IDLE, READ_BYTE, PACK, WRITE_RAM, DONE_PULSE, DONE);
     signal state, state_next : state_type;
+
+    -- row 31 is the last valid RAM address (32 rows total)
+    constant MAX_ADDR : unsigned(4 downto 0) := to_unsigned(31, 5);
 
     -- captures the byte from the FIFO in READ_BYTE so it is stable in PACK
     -- the FIFO advances its pointer one clock after fifo_rd, so fifo_dout
@@ -90,12 +93,9 @@ begin
         case state is
 
             -- IDLE: wait for data in the FIFO
-            -- if FIFO is empty and no partial word is in progress, all bytes are written
             when IDLE =>
                 if fifo_empty = '0' then
                     state_next <= READ_BYTE;
-                elsif byte_idx = 0 then
-                    state_next <= DONE;
                 end if;
 
             -- READ_BYTE: fifo_dout already holds a valid byte (FWFT FIFO)
@@ -127,13 +127,23 @@ begin
             -- ram_din defaults to word_reg which already holds all 4 packed bytes
             when WRITE_RAM =>
                 ram_we        <= '1';
-                addr_next     <= addr_reg + 1;
                 byte_idx_next <= (others => '0');
-                state_next    <= IDLE;
+                if addr_reg = MAX_ADDR then
+                    -- row 31 written: signal completion next cycle
+                    state_next <= DONE_PULSE;
+                else
+                    addr_next  <= addr_reg + 1;
+                    state_next <= IDLE;
+                end if;
 
-            -- DONE: hold fsm_done HIGH until reset
+            -- DONE_PULSE: assert fsm_done for exactly one clock cycle
+            when DONE_PULSE =>
+                fsm_done   <= '1';
+                state_next <= DONE;
+
+            -- DONE: all rows written, stay idle
             when DONE =>
-                fsm_done <= '1';
+                null;
 
         end case;
     end process;
