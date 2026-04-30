@@ -107,7 +107,7 @@ end uart_tx;
 
 ---
 
-### 4. FIFO Buffer — `fifo.vhd` (Eric)
+### 4. FIFO Buffer — `fifo.vhd` (Erik)
 
 ```vhdl
 entity fifo is
@@ -143,7 +143,7 @@ end fifo;
 
 ---
 
-### 5. RAM Module — `ram_module.vhd` (Eric)
+### 5. RAM Module — `ram_module.vhd` (Erik)
 
 ```vhdl
 entity ram_module is

@@ -33,7 +33,7 @@ TX ◄── UART Transmitter ◄── TX FIFO ◄─────────�
 ## Repository Structure
 
 ```
-UART-VHDL-Design/
+UART_VHDL_Design/
 ├── src/                    # VHDL source files
 ├── tb/                     # Testbench files
 ├── docs/                   # Report, presentation, references
@@ -53,7 +53,7 @@ UART-VHDL-Design/
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/UART-VHDL-Design.git
+git clone https://github.com/alberto-hdz/uart_vhdl_design.git
 ```
 
 ### Running Simulations in Vivado
@@ -73,6 +73,9 @@ git clone https://github.com/YOUR_USERNAME/UART-VHDL-Design.git
 | `tb_uart_tx` | 3 ms |
 | `tb_fifo` | 1 µs |
 | `tb_ram` | 1 µs |
+| `tb_uart_fsm` | 5 ms |
+| `tb_classification_engine` | 5 ms |
+| `tb_loopback` | 10 ms |
 | `tb_uart_top` | 10 ms |
 
 ## Design Parameters
