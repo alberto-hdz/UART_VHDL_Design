@@ -267,6 +267,6 @@ This table shows exactly how signals connect between modules in `uart_top.vhd`:
 
 **Kenneth (uart_tx):** Match the `tx_start` / `tx_done` / `din` naming exactly. The TX FIFO drains into your transmitter — when the FIFO is not empty and your module is idle, a controller pulses `tx_start`.
 
-**Eric (fifo, ram_module):** Two FIFO instances will be created in the top level — name them `rx_fifo` and `tx_fifo` as labels, but they are the same entity. RAM `dout` has 1-cycle read latency — the classifier must account for this.
+**Erik (fifo, ram_module):** Two FIFO instances will be created in the top level — name them `rx_fifo` and `tx_fifo` as labels, but they are the same entity. RAM `dout` has 1-cycle read latency — the classifier must account for this.
 
 **Sebastian (classification_engine):** Your `ram_addr` and the FSM's `ram_addr` share the same RAM port. Design your module to start reading from address 0 when `start` pulses. Results stream out one byte at a time via `result` / `result_valid`.
