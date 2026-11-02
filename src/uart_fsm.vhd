@@ -7,8 +7,13 @@
 --   after row 31 (the 32nd word) is written.
 --   Packing: byte 0 -> bits [7:0],  byte 1 -> bits [15:8],
 --            byte 2 -> bits [23:16], byte 3 -> bits [31:24]
+--   The RX FIFO uses a registered (standard) read: r_data
+--   updates on the clock edge where rd is HIGH. So I pop the
+--   byte in READ_BYTE and pack it in PACK, one cycle later.
 -- Author: Alberto Hernandez
 -- Date: 2026-04-14
+-- Rev:  2026-11-02  fixed one-byte offset (FSM was latching
+--                   r_data before the read, assuming a FWFT FIFO)
 -- ============================================
 
 library IEEE;
@@ -21,7 +26,7 @@ entity uart_fsm is
         reset      : in  std_logic;
         -- FIFO interface (connects to rx_fifo)
         fifo_empty : in  std_logic;                        -- HIGH when FIFO has no data
-        fifo_dout  : in  std_logic_vector(7 downto 0);     -- current byte at FIFO head (FWFT)
+        fifo_dout  : in  std_logic_vector(7 downto 0);     -- popped byte, valid the cycle after fifo_rd
         fifo_rd    : out std_logic;                        -- pulse HIGH to pop byte and advance FIFO
         -- RAM interface (connects to ram_module)
         ram_we     : out std_logic;                        -- write enable, active HIGH
@@ -41,11 +46,6 @@ architecture arch of uart_fsm is
     -- row 31 is the last valid RAM address (32 rows total)
     constant MAX_ADDR : unsigned(4 downto 0) := to_unsigned(31, 5);
 
-    -- captures the byte from the FIFO in READ_BYTE so it is stable in PACK
-    -- the FIFO advances its pointer one clock after fifo_rd, so fifo_dout
-    -- in PACK would already show the next byte if we did not latch it here
-    signal byte_buf,     byte_next     : std_logic_vector(7 downto 0);
-
     -- 32-bit packing register: bytes accumulate here before each RAM write
     signal word_reg,     word_next     : std_logic_vector(31 downto 0);
 
@@ -62,13 +62,11 @@ begin
     begin
         if reset = '1' then
             state    <= IDLE;
-            byte_buf <= (others => '0');
             word_reg <= (others => '0');
             byte_idx <= (others => '0');
             addr_reg <= (others => '0');
         elsif rising_edge(clk) then
             state    <= state_next;
-            byte_buf <= byte_next;
             word_reg <= word_next;
             byte_idx <= byte_idx_next;
             addr_reg <= addr_next;
@@ -76,11 +74,10 @@ begin
     end process;
 
     -- next-state and output logic
-    process(state, fifo_empty, fifo_dout, byte_buf, word_reg, byte_idx, addr_reg)
+    process(state, fifo_empty, fifo_dout, word_reg, byte_idx, addr_reg)
     begin
         -- defaults: hold current values, deassert all outputs
         state_next    <= state;
-        byte_next     <= byte_buf;
         word_next     <= word_reg;
         byte_idx_next <= byte_idx;
         addr_next     <= addr_reg;
@@ -98,20 +95,20 @@ begin
                     state_next <= READ_BYTE;
                 end if;
 
-            -- READ_BYTE: fifo_dout already holds a valid byte (FWFT FIFO)
-            -- latch the byte into byte_buf and pulse fifo_rd to advance the FIFO pointer
+            -- READ_BYTE: pulse fifo_rd to pop the head byte
+            -- the FIFO registers it into r_data on this clock edge
             when READ_BYTE =>
                 fifo_rd    <= '1';
-                byte_next  <= fifo_dout;
                 state_next <= PACK;
 
-            -- PACK: place the latched byte into its lane in the 32-bit word
+            -- PACK: fifo_dout now holds the byte popped in READ_BYTE
+            -- (it holds until the next read), place it in its lane
             when PACK =>
                 case byte_idx is
-                    when "00"   => word_next( 7 downto  0) <= byte_buf;
-                    when "01"   => word_next(15 downto  8) <= byte_buf;
-                    when "10"   => word_next(23 downto 16) <= byte_buf;
-                    when others => word_next(31 downto 24) <= byte_buf;
+                    when "00"   => word_next( 7 downto  0) <= fifo_dout;
+                    when "01"   => word_next(15 downto  8) <= fifo_dout;
+                    when "10"   => word_next(23 downto 16) <= fifo_dout;
+                    when others => word_next(31 downto 24) <= fifo_dout;
                 end case;
 
                 if byte_idx = 3 then
@@ -149,3 +146,4 @@ begin
     end process;
 
 end arch;
+

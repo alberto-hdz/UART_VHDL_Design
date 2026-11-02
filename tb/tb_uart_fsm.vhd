@@ -2,13 +2,18 @@
 -- Testbench: tb_uart_fsm
 -- Description: Verifies the FSM reads bytes from the
 --   FIFO and writes 32-bit packed words to RAM correctly.
---   Pre-loads 128 bytes into a FWFT FIFO model (32 RAM words).
+--   Pre-loads 128 bytes into a FIFO model (32 RAM words) that
+--   reads the same way as fifo.vhd: r_data is registered and
+--   updates on the clock edge where rd is HIGH.
 --   Expected results:
 --     RAM[0]  = 0xA4A3A2A1  (bytes A1,A2,A3,A4 packed little-endian)
 --     RAM[1]  = 0xB4B3B2B1  (bytes B1,B2,B3,B4 packed little-endian)
 --     RAM[31] = 0xE4E3E2E1  (bytes E1,E2,E3,E4 packed little-endian)
 -- Author: Alberto Hernandez
 -- Date: 2026-04-14
+-- Rev:  2026-11-02  FIFO model changed from FWFT to registered read
+--                   to match the real fifo.vhd; failure messages
+--                   print hex (integer'image overflowed)
 -- ============================================
 
 library IEEE;
@@ -33,9 +38,9 @@ architecture sim of tb_uart_fsm is
 
     constant CLK_PERIOD : time := 10 ns;  -- 100 MHz
 
-    -- FIFO model: 128 pre-loaded bytes (32 words), FWFT behavior
-    -- r_data (fifo_dout) is valid whenever empty is LOW
-    -- asserting fifo_rd advances the read pointer on the next rising edge
+    -- FIFO model: 128 pre-loaded bytes (32 words), registered read
+    -- like fifo.vhd: when fifo_rd is HIGH on a rising edge, the head byte
+    -- is copied into fifo_dout and the read pointer advances
     type fifo_mem_t is array (0 to 127) of std_logic_vector(7 downto 0);
     constant FIFO_DATA : fifo_mem_t := (
         -- Row 0: bytes A1..A4  -> RAM[0] = 0xA4A3A2A1
@@ -48,10 +53,24 @@ architecture sim of tb_uart_fsm is
         124 => x"E1", 125 => x"E2", 126 => x"E3", 127 => x"E4"
     );
     signal rd_ptr : integer range 0 to 128 := 0;
+    signal fifo_dout_reg : std_logic_vector(7 downto 0) := (others => '0');
 
     -- RAM model: 32 rows x 32-bit, matches ram_module interface
     type ram_mem_t is array (0 to 31) of std_logic_vector(31 downto 0);
     signal ram_mem : ram_mem_t := (others => (others => '0'));
+
+    -- prints a 32-bit word as 8 hex digits for failure messages
+    -- (integer'image overflows on words above 0x7FFFFFFF)
+    function to_hex32(w : std_logic_vector(31 downto 0)) return string is
+        constant hex_chars : string(1 to 16) := "0123456789ABCDEF";
+        variable s : string(1 to 10);
+    begin
+        s(1 to 2) := "0x";
+        for i in 0 to 7 loop
+            s(3 + i) := hex_chars(to_integer(unsigned(w(31 - 4*i downto 28 - 4*i))) + 1);
+        end loop;
+        return s;
+    end function;
 
 begin
 
@@ -72,18 +91,20 @@ begin
     -- clock: toggles every 5 ns = 100 MHz
     clk <= not clk after CLK_PERIOD / 2;
 
-    -- FWFT FIFO model: r_data always shows the current head byte
-    fifo_dout  <= FIFO_DATA(rd_ptr) when rd_ptr < 128 else (others => '0');
+    -- registered-read FIFO model: fifo_dout only changes on a read
+    fifo_dout  <= fifo_dout_reg;
     fifo_empty <= '1' when rd_ptr >= 128 else '0';
 
-    -- advance the read pointer when the FSM pops a byte
+    -- on a read, copy the head byte out and advance the read pointer
     fifo_proc: process(clk, reset)
     begin
         if reset = '1' then
-            rd_ptr <= 0;
+            rd_ptr        <= 0;
+            fifo_dout_reg <= (others => '0');
         elsif rising_edge(clk) then
             if fifo_rd = '1' and rd_ptr < 128 then
-                rd_ptr <= rd_ptr + 1;
+                fifo_dout_reg <= FIFO_DATA(rd_ptr);
+                rd_ptr        <= rd_ptr + 1;
             end if;
         end if;
     end process;
@@ -111,28 +132,32 @@ begin
         wait for CLK_PERIOD;
 
         -- TEST 1: first 4 bytes (A1,A2,A3,A4) packed little-endian into RAM[0]
-        assert ram_mem(0) = x"A4A3A2A1"
+        if ram_mem(0) = x"A4A3A2A1" then
+            report "TEST 1 PASSED: RAM[0] = 0xA4A3A2A1" severity note;
+        else
             report "TEST 1 FAILED: RAM[0] expected 0xA4A3A2A1, got " &
-                   integer'image(to_integer(unsigned(ram_mem(0))))
-            severity error;
-        report "TEST 1 PASSED: RAM[0] = 0xA4A3A2A1" severity note;
+                   to_hex32(ram_mem(0)) severity error;
+        end if;
 
         -- TEST 2: next 4 bytes (B1,B2,B3,B4) packed little-endian into RAM[1]
-        assert ram_mem(1) = x"B4B3B2B1"
+        if ram_mem(1) = x"B4B3B2B1" then
+            report "TEST 2 PASSED: RAM[1] = 0xB4B3B2B1" severity note;
+        else
             report "TEST 2 FAILED: RAM[1] expected 0xB4B3B2B1, got " &
-                   integer'image(to_integer(unsigned(ram_mem(1))))
-            severity error;
-        report "TEST 2 PASSED: RAM[1] = 0xB4B3B2B1" severity note;
+                   to_hex32(ram_mem(1)) severity error;
+        end if;
 
         -- TEST 3: last 4 bytes (E1,E2,E3,E4) packed little-endian into RAM[31]
-        assert ram_mem(31) = x"E4E3E2E1"
+        if ram_mem(31) = x"E4E3E2E1" then
+            report "TEST 3 PASSED: RAM[31] = 0xE4E3E2E1" severity note;
+        else
             report "TEST 3 FAILED: RAM[31] expected 0xE4E3E2E1, got " &
-                   integer'image(to_integer(unsigned(ram_mem(31))))
-            severity error;
-        report "TEST 3 PASSED: RAM[31] = 0xE4E3E2E1" severity note;
+                   to_hex32(ram_mem(31)) severity error;
+        end if;
 
         report "All FSM tests complete" severity note;
         wait;
     end process;
 
 end sim;
+

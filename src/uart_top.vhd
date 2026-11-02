@@ -8,6 +8,7 @@
 --   A TX controller FSM drains the TX FIFO one byte at a time.
 -- Author: Alberto Hernandez
 -- Date: 2026-04-28
+-- Rev:  2026-11-02  added 2-flop synchronizer on the async rx input
 -- ============================================
 
 library IEEE;
@@ -34,6 +35,14 @@ architecture arch of uart_top is
 
     -- baud tick (16x oversample)
     signal s_tick : std_logic;
+
+    -- rx synchronizer: rx comes from outside and is not related to clk,
+    -- so I pass it through two flip-flops before uart_rx uses it
+    signal rx_meta : std_logic := '1';
+    signal rx_sync : std_logic := '1';
+    attribute ASYNC_REG : string;
+    attribute ASYNC_REG of rx_meta : signal is "TRUE";
+    attribute ASYNC_REG of rx_sync : signal is "TRUE";
 
     -- uart_rx outputs
     signal rx_done : std_logic;
@@ -94,13 +103,27 @@ begin
         );
 
     -- -------------------------------------------------------
+    -- RX input synchronizer (resets to '1' = UART idle)
+    -- -------------------------------------------------------
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            rx_meta <= '1';
+            rx_sync <= '1';
+        elsif rising_edge(clk) then
+            rx_meta <= rx;
+            rx_sync <= rx_meta;
+        end if;
+    end process;
+
+    -- -------------------------------------------------------
     -- UART receiver
     -- -------------------------------------------------------
     U_UART_RX : entity work.uart_rx
         port map(
             clk     => clk,
             reset   => reset,
-            rx      => rx,
+            rx      => rx_sync,
             s_tick  => s_tick,
             rx_done => rx_done,
             dout    => rx_dout
@@ -265,3 +288,4 @@ begin
     classify_done <= ce_done;
 
 end arch;
+
